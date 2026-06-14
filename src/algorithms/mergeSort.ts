@@ -31,10 +31,10 @@ export const mergeSort: SortAlgorithm = {
           array: [...values],
           activeIndices: [left + leftIndex, middle + 1 + rightIndex],
           phase: 'comparing',
-          note: `比较左段 ${leftSlice[leftIndex]} 和右段 ${rightSlice[rightIndex]}。`,
+          note: `比较左段 ${leftSlice[leftIndex].value} 和右段 ${rightSlice[rightIndex].value}。`,
         });
 
-        if (leftSlice[leftIndex] <= rightSlice[rightIndex]) {
+        if (leftSlice[leftIndex].value <= rightSlice[rightIndex].value) {
           values[writeIndex] = leftSlice[leftIndex];
           leftIndex += 1;
         } else {
@@ -74,6 +74,14 @@ export const mergeSort: SortAlgorithm = {
         rightIndex += 1;
         writeIndex += 1;
       }
+
+      steps.push({
+        array: [...values],
+        activeIndices: Array.from({ length: right - left + 1 }, (_, index) => left + index),
+        playSoundAfterStep: true,
+        phase: 'done',
+        note: `第 ${left + 1} 到第 ${right + 1} 个位置完成一轮合并。`,
+      });
     };
 
     const sort = (left: number, right: number): void => {
@@ -91,6 +99,7 @@ export const mergeSort: SortAlgorithm = {
     steps.push({
       array: [...values],
       sortedIndices: [...values.keys()],
+      playSoundAfterStep: true,
       phase: 'done',
       note: '归并排序完成。',
     });

@@ -1,6 +1,9 @@
 import type { SortStep } from '../types/sorting';
 
-const colorForBar = (index: number, step: SortStep): string => {
+const colorForBar = (index: number, step: SortStep, playbackOriginalIndex: number | null): string => {
+  if (playbackOriginalIndex === step.array[index].originalIndex) {
+    return '#a855f7';
+  }
   if (step.sortedIndices?.includes(index)) {
     return '#16a34a';
   }
@@ -19,7 +22,11 @@ const colorForBar = (index: number, step: SortStep): string => {
   return '#475569';
 };
 
-export const drawSortState = (canvas: HTMLCanvasElement, step: SortStep): void => {
+export const drawSortState = (
+  canvas: HTMLCanvasElement,
+  step: SortStep,
+  playbackOriginalIndex: number | null,
+): void => {
   const context = canvas.getContext('2d');
   if (!context) {
     return;
@@ -41,11 +48,13 @@ export const drawSortState = (canvas: HTMLCanvasElement, step: SortStep): void =
   context.clearRect(0, 0, width, height);
 
   const padding = 20;
-  const chartWidth = width - padding * 2;
-  const chartHeight = height - padding * 2;
-  const gap = Math.max(2, Math.min(6, chartWidth / step.array.length / 5));
-  const barWidth = (chartWidth - gap * (step.array.length - 1)) / step.array.length;
-  const maxValue = Math.max(...step.array);
+  const chartWidth = Math.max(width - padding * 2, 1);
+  const chartHeight = Math.max(height - padding * 2, 1);
+  const itemCount = Math.max(step.array.length, 1);
+  const rawBarWidth = chartWidth / itemCount;
+  const gap = rawBarWidth >= 4 ? Math.min(6, rawBarWidth * 0.18) : 0;
+  const barWidth = Math.max((chartWidth - gap * (itemCount - 1)) / itemCount, 1);
+  const maxValue = Math.max(...step.array.map((item) => item.value));
 
   context.fillStyle = '#f8fafc';
   context.fillRect(0, 0, width, height);
@@ -60,15 +69,23 @@ export const drawSortState = (canvas: HTMLCanvasElement, step: SortStep): void =
     context.stroke();
   }
 
-  step.array.forEach((value, index) => {
-    const barHeight = (value / maxValue) * chartHeight;
+  step.array.forEach((item, index) => {
+    const barHeight = (item.value / maxValue) * chartHeight;
     const x = padding + index * (barWidth + gap);
     const y = height - padding - barHeight;
-    const radius = Math.min(5, barWidth / 2);
+    const radius = Math.max(0, Math.min(5, barWidth / 2, barHeight / 2));
 
-    context.fillStyle = colorForBar(index, step);
+    const isPlaybackBar = playbackOriginalIndex === item.originalIndex;
+
+    context.fillStyle = colorForBar(index, step, playbackOriginalIndex);
     context.beginPath();
     context.roundRect(x, y, barWidth, barHeight, radius);
     context.fill();
+
+    if (isPlaybackBar) {
+      context.strokeStyle = '#581c87';
+      context.lineWidth = Math.max(2, Math.min(5, barWidth * 0.18));
+      context.stroke();
+    }
   });
 };

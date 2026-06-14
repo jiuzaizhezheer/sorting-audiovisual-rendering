@@ -20,7 +20,7 @@ export const quickSort: SortAlgorithm = {
     ];
 
     const partition = (left: number, right: number): number => {
-      const pivotValue = values[right];
+      const pivotValue = values[right].value;
       let storeIndex = left;
 
       steps.push({
@@ -37,10 +37,10 @@ export const quickSort: SortAlgorithm = {
           activeIndices: [index, storeIndex],
           pivotIndex: right,
           phase: 'comparing',
-          note: `比较 ${values[index]} 与基准 ${pivotValue}。`,
+          note: `比较 ${values[index].value} 与基准 ${pivotValue}。`,
         });
 
-        if (values[index] < pivotValue) {
+        if (values[index].value < pivotValue) {
           [values[index], values[storeIndex]] = [values[storeIndex], values[index]];
           steps.push({
             array: [...values],
@@ -58,8 +58,9 @@ export const quickSort: SortAlgorithm = {
         array: [...values],
         activeIndices: [storeIndex, right],
         pivotIndex: storeIndex,
+        playSoundAfterStep: true,
         phase: 'swapping',
-        note: `基准归位到第 ${storeIndex + 1} 个位置。`,
+        note: `基准归位到第 ${storeIndex + 1} 个位置，本轮分区结束。`,
       });
 
       return storeIndex;
@@ -79,6 +80,7 @@ export const quickSort: SortAlgorithm = {
     steps.push({
       array: [...values],
       sortedIndices: [...values.keys()],
+      playSoundAfterStep: true,
       phase: 'done',
       note: '快速排序完成。',
     });

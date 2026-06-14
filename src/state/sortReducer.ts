@@ -1,13 +1,14 @@
 import { algorithmMap } from '../algorithms/registry';
-import type { SortAlgorithmId, SortStep } from '../types/sorting';
+import type { SortAlgorithmId, SortItem, SortStep } from '../types/sorting';
 import { createRandomArray } from '../utils/randomArray';
 
 export type SortState = {
   algorithmId: SortAlgorithmId;
-  values: number[];
+  values: SortItem[];
   steps: SortStep[];
   stepIndex: number;
   isPlaying: boolean;
+  isSoundEnabled: boolean;
   speedMs: number;
   size: number;
 };
@@ -17,6 +18,7 @@ export type SortAction =
   | { type: 'generateValues' }
   | { type: 'setSize'; size: number }
   | { type: 'setSpeed'; speedMs: number }
+  | { type: 'toggleSound' }
   | { type: 'play' }
   | { type: 'pause' }
   | { type: 'togglePlayback' }
@@ -24,12 +26,12 @@ export type SortAction =
   | { type: 'previousStep' }
   | { type: 'resetSteps' };
 
-const buildSteps = (algorithmId: SortAlgorithmId, values: number[]): SortStep[] =>
+const buildSteps = (algorithmId: SortAlgorithmId, values: SortItem[]): SortStep[] =>
   algorithmMap[algorithmId].createSteps(values);
 
 export const createInitialSortState = (): SortState => {
   const algorithmId: SortAlgorithmId = 'bubble';
-  const size = 32;
+  const size = 100;
   const values = createRandomArray(size);
 
   return {
@@ -38,7 +40,8 @@ export const createInitialSortState = (): SortState => {
     steps: buildSteps(algorithmId, values),
     stepIndex: 0,
     isPlaying: false,
-    speedMs: 120,
+    isSoundEnabled: true,
+    speedMs: 5,
     size,
   };
 };
@@ -80,6 +83,11 @@ export const sortReducer = (state: SortState, action: SortAction): SortState => 
       return {
         ...state,
         speedMs: action.speedMs,
+      };
+    case 'toggleSound':
+      return {
+        ...state,
+        isSoundEnabled: !state.isSoundEnabled,
       };
     case 'play':
       return {

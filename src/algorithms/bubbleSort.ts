@@ -30,7 +30,7 @@ export const bubbleSort: SortAlgorithm = {
           note: `比较第 ${index + 1} 和第 ${index + 2} 个元素。`,
         });
 
-        if (values[index] > values[index + 1]) {
+        if (values[index].value > values[index + 1].value) {
           [values[index], values[index + 1]] = [values[index + 1], values[index]];
           steps.push({
             array: [...values],
@@ -46,8 +46,9 @@ export const bubbleSort: SortAlgorithm = {
       steps.push({
         array: [...values],
         sortedIndices: [...sorted],
+        playSoundAfterStep: true,
         phase: 'done',
-        note: `第 ${end + 1} 个位置已经就位。`,
+        note: `第 ${end + 1} 个位置已经就位，本轮比较结束。`,
       });
     }
 
@@ -55,6 +56,7 @@ export const bubbleSort: SortAlgorithm = {
     steps.push({
       array: [...values],
       sortedIndices: [...values.keys()],
+      playSoundAfterStep: true,
       phase: 'done',
       note: '冒泡排序完成。',
     });
