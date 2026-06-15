@@ -10,21 +10,28 @@ type CanvasViewportProps = {
 
 export const CanvasViewport = ({ values, step, playbackOriginalIndex }: CanvasViewportProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const renderRef = useRef<() => void>(() => {});
+
+  renderRef.current = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    drawSortState(canvas, values, step, playbackOriginalIndex);
+  };
+
+  useEffect(() => {
+    renderRef.current();
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
+    if (!canvas) return;
 
-    const render = () => drawSortState(canvas, values, step, playbackOriginalIndex);
-    render();
-
-    const resizeObserver = new ResizeObserver(render);
+    const onResize = () => renderRef.current();
+    const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(canvas);
 
     return () => resizeObserver.disconnect();
-  }, [playbackOriginalIndex, step, values]);
+  }, []);
 
   return (
     <div className="flex h-[460px] min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm lg:h-full">

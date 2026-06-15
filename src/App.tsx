@@ -133,11 +133,23 @@ export const App = () => {
 
       if (hasUploadedAudio) {
         const nextStep = result.value;
+
+        if (!cancelled) {
+          dispatch({
+            type: 'applyStep',
+            values: [...runnerValuesRef.current],
+            step: nextStep,
+            isDone: Boolean(result.done),
+          });
+        }
+
+        if (result.done) {
+          return;
+        }
+
         const audioItems = getStepAudioItems(runnerValuesRef.current, nextStep.audioIndices);
 
-        if (audioItems.length === 0) {
-          await Promise.resolve();
-        } else {
+        if (audioItems.length > 0) {
           audioEngineRef.current ??= new SortAudioEngine();
           await audioEngineRef.current.playItems(
             audioItems,
@@ -147,20 +159,24 @@ export const App = () => {
               onPlaybackEnd: () => setPlaybackOriginalIndex(null),
             },
           );
+        } else {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, 200);
+          });
         }
       } else {
         await new Promise<void>((resolve) => {
           window.setTimeout(resolve, NO_AUDIO_STEP_INTERVAL_MS);
         });
-      }
 
-      if (!cancelled) {
-        dispatch({
-          type: 'applyStep',
-          values: [...runnerValuesRef.current],
-          step: result.value,
-          isDone: Boolean(result.done),
-        });
+        if (!cancelled) {
+          dispatch({
+            type: 'applyStep',
+            values: [...runnerValuesRef.current],
+            step: result.value,
+            isDone: Boolean(result.done),
+          });
+        }
       }
     };
 
