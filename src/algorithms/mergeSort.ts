@@ -1,4 +1,4 @@
-import type { SortAlgorithm, SortStep } from '../types/sorting';
+import type { SortAlgorithm, SortItem, SortStep } from '../types/sorting';
 
 export const mergeSort: SortAlgorithm = {
   id: 'merge',
@@ -9,101 +9,78 @@ export const mergeSort: SortAlgorithm = {
     time: 'O(n log n)',
     space: 'O(n)',
   },
-  createSteps(input) {
-    const values = [...input];
-    const steps: SortStep[] = [
-      {
-        array: [...values],
-        phase: 'idle',
-        note: '初始数组已生成，准备递归拆分。',
-      },
-    ];
-
-    const merge = (left: number, middle: number, right: number): void => {
+  *createRunner(values) {
+    function* merge(left: number, middle: number, right: number): Generator<SortStep, void, void> {
       const leftSlice = values.slice(left, middle + 1);
       const rightSlice = values.slice(middle + 1, right + 1);
+      const merged: SortItem[] = [];
       let leftIndex = 0;
       let rightIndex = 0;
-      let writeIndex = left;
 
       while (leftIndex < leftSlice.length && rightIndex < rightSlice.length) {
-        steps.push({
-          array: [...values],
-          activeIndices: [left + leftIndex, middle + 1 + rightIndex],
+        const leftPos = left + leftIndex;
+        const rightPos = middle + 1 + rightIndex;
+
+        yield {
+          activeIndices: [leftPos, rightPos],
+          audioIndices: [leftPos, rightPos],
           phase: 'comparing',
           note: `比较左段 ${leftSlice[leftIndex].value} 和右段 ${rightSlice[rightIndex].value}。`,
-        });
+        };
 
         if (leftSlice[leftIndex].value <= rightSlice[rightIndex].value) {
-          values[writeIndex] = leftSlice[leftIndex];
+          merged.push(leftSlice[leftIndex]);
           leftIndex += 1;
         } else {
-          values[writeIndex] = rightSlice[rightIndex];
+          merged.push(rightSlice[rightIndex]);
           rightIndex += 1;
         }
-
-        steps.push({
-          array: [...values],
-          activeIndices: [writeIndex],
-          phase: 'overwriting',
-          note: `把较小值写回第 ${writeIndex + 1} 个位置。`,
-        });
-        writeIndex += 1;
       }
 
       while (leftIndex < leftSlice.length) {
-        values[writeIndex] = leftSlice[leftIndex];
-        steps.push({
-          array: [...values],
-          activeIndices: [writeIndex],
-          phase: 'overwriting',
-          note: `左段剩余值写回第 ${writeIndex + 1} 个位置。`,
-        });
+        merged.push(leftSlice[leftIndex]);
         leftIndex += 1;
-        writeIndex += 1;
       }
 
       while (rightIndex < rightSlice.length) {
-        values[writeIndex] = rightSlice[rightIndex];
-        steps.push({
-          array: [...values],
-          activeIndices: [writeIndex],
-          phase: 'overwriting',
-          note: `右段剩余值写回第 ${writeIndex + 1} 个位置。`,
-        });
+        merged.push(rightSlice[rightIndex]);
         rightIndex += 1;
-        writeIndex += 1;
       }
 
-      steps.push({
-        array: [...values],
+      for (let i = 0; i < merged.length; i += 1) {
+        const targetIndex = left + i;
+        values[targetIndex] = merged[i];
+        yield {
+          activeIndices: [targetIndex],
+          audioIndices: [targetIndex],
+          phase: 'overwriting',
+          note: `把值 ${merged[i].value} 写回第 ${targetIndex + 1} 个位置。`,
+        };
+      }
+
+      yield {
         activeIndices: Array.from({ length: right - left + 1 }, (_, index) => left + index),
-        playSoundAfterStep: true,
         phase: 'done',
         note: `第 ${left + 1} 到第 ${right + 1} 个位置完成一轮合并。`,
-      });
-    };
+      };
+    }
 
-    const sort = (left: number, right: number): void => {
+    function* sort(left: number, right: number): Generator<SortStep, void, void> {
       if (left >= right) {
         return;
       }
 
       const middle = Math.floor((left + right) / 2);
-      sort(left, middle);
-      sort(middle + 1, right);
-      merge(left, middle, right);
-    };
+      yield* sort(left, middle);
+      yield* sort(middle + 1, right);
+      yield* merge(left, middle, right);
+    }
 
-    sort(0, values.length - 1);
-    steps.push({
-      array: [...values],
+    yield* sort(0, values.length - 1);
+    return {
       sortedIndices: [...values.keys()],
-      playSoundAfterStep: true,
       phase: 'done',
       note: '归并排序完成。',
-    });
-
-    return steps;
+    };
   },
 };

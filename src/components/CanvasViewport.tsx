@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { drawSortState } from '../canvas/drawSortState';
-import type { SortStep } from '../types/sorting';
+import type { SortItem, SortStep } from '../types/sorting';
 
 type CanvasViewportProps = {
+  values: SortItem[];
   step: SortStep;
   playbackOriginalIndex: number | null;
 };
 
-export const CanvasViewport = ({ step, playbackOriginalIndex }: CanvasViewportProps) => {
+export const CanvasViewport = ({ values, step, playbackOriginalIndex }: CanvasViewportProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -16,14 +17,14 @@ export const CanvasViewport = ({ step, playbackOriginalIndex }: CanvasViewportPr
       return;
     }
 
-    const render = () => drawSortState(canvas, step, playbackOriginalIndex);
+    const render = () => drawSortState(canvas, values, step, playbackOriginalIndex);
     render();
 
     const resizeObserver = new ResizeObserver(render);
     resizeObserver.observe(canvas);
 
     return () => resizeObserver.disconnect();
-  }, [playbackOriginalIndex, step]);
+  }, [playbackOriginalIndex, step, values]);
 
   return (
     <div className="flex h-[460px] min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm lg:h-full">
@@ -32,27 +33,31 @@ export const CanvasViewport = ({ step, playbackOriginalIndex }: CanvasViewportPr
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-slate-200 px-4 py-3 text-sm">
         <span className="inline-flex items-center gap-2 text-slate-600">
+          <span className="h-3 w-3 rounded-sm bg-slate-600" />
+          当前数组
+        </span>
+        <span className="inline-flex items-center gap-2 text-slate-600">
           <span className="h-3 w-3 rounded-sm bg-cyan-600" />
           比较
         </span>
         <span className="inline-flex items-center gap-2 text-slate-600">
-          <span className="h-3 w-3 rounded-sm bg-red-600" />
+          <span className="h-3 w-3 rounded-sm bg-rose-600" />
           交换
         </span>
         <span className="inline-flex items-center gap-2 text-slate-600">
-          <span className="h-3 w-3 rounded-sm bg-blue-600" />
+          <span className="h-3 w-3 rounded-sm bg-blue-700" />
           写回
         </span>
         <span className="inline-flex items-center gap-2 text-slate-600">
-          <span className="h-3 w-3 rounded-sm bg-amber-500" />
+          <span className="h-3 w-3 rounded-sm bg-orange-500" />
           基准
         </span>
         <span className="inline-flex items-center gap-2 text-slate-600">
-          <span className="h-3 w-3 rounded-sm bg-green-600" />
+          <span className="h-3 w-3 rounded-sm bg-green-700" />
           已完成
         </span>
         <span className="inline-flex items-center gap-2 text-slate-600">
-          <span className="h-3 w-3 rounded-sm bg-purple-500" />
+          <span className="h-3 w-3 rounded-sm bg-purple-600" />
           正在播放
         </span>
       </div>

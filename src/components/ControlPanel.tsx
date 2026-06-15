@@ -1,7 +1,4 @@
-import { FileAudio, Pause, Play, RotateCcw, Shuffle, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
-
-const SPEED_OPTIONS = [2, 5, 7, 10] as const;
-const SIZE_OPTIONS = [50, 100, 150, 200] as const;
+import { FileAudio, Pause, Play, RotateCcw, Shuffle } from 'lucide-react';
 
 type TickRangeProps<TValue extends number> = {
   label: string;
@@ -12,7 +9,8 @@ type TickRangeProps<TValue extends number> = {
 };
 
 const TickRange = <TValue extends number>({ label, suffix = '', value, options, onChange }: TickRangeProps<TValue>) => {
-  const selectedIndex = Math.max(0, options.findIndex((option) => option === value));
+  const foundIndex = options.findIndex((option) => option === value);
+  const selectedIndex = foundIndex >= 0 ? foundIndex : 0;
 
   return (
     <label className="grid gap-1 text-sm text-slate-600">
@@ -33,12 +31,19 @@ const TickRange = <TValue extends number>({ label, suffix = '', value, options, 
           onChange={(event) => onChange(options[Number(event.target.value)])}
           className="w-full accent-slate-950"
         />
-        <div className="flex justify-between font-mono text-xs text-slate-500">
-          {options.map((option) => (
-            <span key={option} className="w-0 text-center">
-              {option}
-            </span>
-          ))}
+        <div className="relative h-4 font-mono text-xs text-slate-500">
+          {options.map((option, index) => {
+            const left = options.length > 1 ? (index / (options.length - 1)) * 100 : 50;
+            return (
+              <span
+                key={option}
+                className="absolute -translate-x-1/2"
+                style={{ left: `${left}%` }}
+              >
+                {option}
+              </span>
+            );
+          })}
         </div>
       </div>
     </label>
@@ -47,73 +52,45 @@ const TickRange = <TValue extends number>({ label, suffix = '', value, options, 
 
 type ControlPanelProps = {
   isPlaying: boolean;
-  isSoundEnabled: boolean;
-  canGoBack: boolean;
-  canGoForward: boolean;
+  canPlay: boolean;
   size: number;
-  speedMs: number;
+  sizeOptions: readonly number[];
   audioFileName: string | null;
   isAudioLoading: boolean;
+  audioFileStatus: 'idle' | 'ready' | 'error';
   onTogglePlayback: () => void;
-  onToggleSound: () => void;
   onAudioFileChange: (file: File) => void;
-  onPrevious: () => void;
-  onNext: () => void;
   onReset: () => void;
   onGenerate: () => void;
   onSizeChange: (size: number) => void;
-  onSpeedChange: (speedMs: number) => void;
 };
 
 export const ControlPanel = ({
   isPlaying,
-  isSoundEnabled,
-  canGoBack,
-  canGoForward,
+  canPlay,
   size,
-  speedMs,
+  sizeOptions,
   audioFileName,
   isAudioLoading,
+  audioFileStatus,
   onTogglePlayback,
-  onToggleSound,
   onAudioFileChange,
-  onPrevious,
-  onNext,
   onReset,
   onGenerate,
   onSizeChange,
-  onSpeedChange,
 }: ControlPanelProps) => (
   <section className="grid grid-rows-[auto_auto_auto] gap-2">
     <div className="grid min-h-0 gap-2">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">播放控制</p>
-      <div className="grid grid-cols-[clamp(42px,3.2vw,56px)_minmax(0,1fr)_clamp(42px,3.2vw,56px)_clamp(42px,3.2vw,56px)] gap-2">
-        <button
-          type="button"
-          onClick={onPrevious}
-          disabled={!canGoBack}
-          title="上一步"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-slate-200 text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
-        >
-          <SkipBack size={18} />
-        </button>
+      <div className="grid grid-cols-[minmax(0,1fr)_clamp(42px,3.2vw,56px)] gap-2">
         <button
           type="button"
           onClick={onTogglePlayback}
-          disabled={!canGoForward}
+          disabled={!canPlay}
           className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {isPlaying ? <Pause size={18} /> : <Play size={18} />}
           {isPlaying ? '暂停' : '播放'}
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={!canGoForward}
-          title="下一步"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-slate-200 text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
-        >
-          <SkipForward size={18} />
         </button>
         <button
           type="button"
@@ -127,28 +104,37 @@ export const ControlPanel = ({
     </div>
 
     <div className="grid min-h-0 gap-2 border-t border-slate-200 pt-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">声音与音频</p>
-      <button
-        type="button"
-        onClick={onToggleSound}
-        className={`inline-flex h-9 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium ${
-          isSoundEnabled
-            ? 'border-cyan-700 bg-cyan-50 text-cyan-800'
-            : 'border-slate-300 text-slate-600 hover:border-slate-500'
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">音频</p>
+
+      <label
+        className={`grid min-h-14 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md border p-2 text-sm transition ${
+          audioFileStatus === 'ready'
+            ? 'border-emerald-700 bg-emerald-50 text-emerald-900 shadow-[inset_0_0_0_1px_rgba(4,120,87,0.12)]'
+            : audioFileStatus === 'error'
+              ? 'border-rose-300 bg-rose-50 text-rose-900'
+              : 'border-dashed border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-500'
         }`}
       >
-        {isSoundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
-        {isSoundEnabled ? '声音已开启' : '声音已关闭'}
-      </button>
-
-      <label className="grid min-h-14 cursor-pointer content-center gap-0.5 rounded-md border border-dashed border-slate-300 bg-slate-50 p-2 text-sm text-slate-700 hover:border-slate-500">
-        <span className="inline-flex items-center gap-2 font-medium text-slate-800">
-          <FileAudio size={17} />
-          上传音频
+        <span className="grid min-w-0 gap-0.5">
+          <span className="inline-flex items-center gap-2 font-medium">
+            <FileAudio size={17} />
+            上传音频
+          </span>
+          <span className="truncate text-xs opacity-75">
+            {isAudioLoading ? '正在解码音频...' : audioFileName ?? '未上传音频时按1ms间隔进行'}
+          </span>
         </span>
-        <span className="truncate text-xs text-slate-500">
-          {isAudioLoading ? '正在解码音频...' : audioFileName ?? '未上传时使用合成音调'}
-        </span>
+        <span
+          className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+            audioFileStatus === 'ready'
+              ? 'bg-emerald-600 shadow-[0_0_0_4px_rgba(16,185,129,0.18)]'
+              : audioFileStatus === 'error'
+                ? 'bg-rose-500 shadow-[0_0_0_4px_rgba(244,63,94,0.14)]'
+                : isAudioLoading
+                  ? 'bg-sky-500 shadow-[0_0_0_4px_rgba(14,165,233,0.14)]'
+                  : 'bg-slate-300'
+          }`}
+        />
         <input
           type="file"
           accept="audio/*"
@@ -176,8 +162,7 @@ export const ControlPanel = ({
         生成新数组
       </button>
 
-      <TickRange label="数组长度" value={size} options={SIZE_OPTIONS} onChange={onSizeChange} />
-      <TickRange label="播放间隔" suffix="ms" value={speedMs} options={SPEED_OPTIONS} onChange={onSpeedChange} />
+      <TickRange label="数组长度" value={size} options={sizeOptions} onChange={onSizeChange} />
     </div>
   </section>
 );

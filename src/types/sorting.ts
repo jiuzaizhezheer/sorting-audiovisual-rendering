@@ -8,11 +8,10 @@ export type SortItem = {
 };
 
 export type SortStep = {
-  array: SortItem[];
   activeIndices?: number[];
+  audioIndices?: number[];
   sortedIndices?: number[];
   pivotIndex?: number;
-  playSoundAfterStep?: boolean;
   phase: SortPhase;
   note: string;
 };
@@ -26,5 +25,5 @@ export type SortAlgorithm = {
     time: string;
     space: string;
   };
-  createSteps: (input: SortItem[]) => SortStep[];
+  createRunner: (values: SortItem[]) => Generator<SortStep, SortStep, void>;
 };

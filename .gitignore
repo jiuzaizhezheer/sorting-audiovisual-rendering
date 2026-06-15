@@ -26,6 +26,7 @@ dist-ssr
 # IDE specific
 .codegraph/
 .reasonix/
+reasonix.toml
 
 # Environment variables
 .env

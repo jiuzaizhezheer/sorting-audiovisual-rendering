@@ -1,29 +1,65 @@
-import type { SortStep } from '../types/sorting';
+import type { SortItem, SortStep } from '../types/sorting';
 
-const colorForBar = (index: number, step: SortStep, playbackOriginalIndex: number | null): string => {
-  if (playbackOriginalIndex === step.array[index].originalIndex) {
-    return '#a855f7';
+const colorForBar = (
+  item: SortItem,
+  index: number,
+  step: SortStep,
+  playbackOriginalIndex: number | null,
+): string => {
+  if (playbackOriginalIndex === item.originalIndex) {
+    return '#9333ea';
   }
   if (step.sortedIndices?.includes(index)) {
-    return '#16a34a';
+    return '#15803d';
   }
   if (step.pivotIndex === index) {
-    return '#f59e0b';
+    return '#f97316';
   }
   if (step.activeIndices?.includes(index)) {
+    if (step.phase === 'done') {
+      return '#15803d';
+    }
     if (step.phase === 'swapping') {
-      return '#dc2626';
+      return '#e11d48';
     }
     if (step.phase === 'overwriting') {
-      return '#2563eb';
+      return '#1d4ed8';
     }
     return '#0891b2';
   }
-  return '#475569';
+  return '#64748b';
+};
+
+const drawRoundRect = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void => {
+  if (typeof CanvasRenderingContext2D.prototype.roundRect === 'function') {
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+
+  // Fallback for browsers that don't support roundRect (e.g. older Safari).
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.arcTo(x + w, y, x + w, y + radius, radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.arcTo(x + w, y + h, x + w - radius, y + h, radius);
+  ctx.lineTo(x + radius, y + h);
+  ctx.arcTo(x, y + h, x, y + h - radius, radius);
+  ctx.lineTo(x, y + radius);
+  ctx.arcTo(x, y, x + radius, y, radius);
+  ctx.closePath();
 };
 
 export const drawSortState = (
   canvas: HTMLCanvasElement,
+  values: SortItem[],
   step: SortStep,
   playbackOriginalIndex: number | null,
 ): void => {
@@ -50,11 +86,11 @@ export const drawSortState = (
   const padding = 20;
   const chartWidth = Math.max(width - padding * 2, 1);
   const chartHeight = Math.max(height - padding * 2, 1);
-  const itemCount = Math.max(step.array.length, 1);
+  const itemCount = Math.max(values.length, 1);
   const rawBarWidth = chartWidth / itemCount;
   const gap = rawBarWidth >= 4 ? Math.min(6, rawBarWidth * 0.18) : 0;
   const barWidth = Math.max((chartWidth - gap * (itemCount - 1)) / itemCount, 1);
-  const maxValue = Math.max(...step.array.map((item) => item.value));
+  const maxValue = Math.max(...values.map((item) => item.value));
 
   context.fillStyle = '#f8fafc';
   context.fillRect(0, 0, width, height);
@@ -69,7 +105,7 @@ export const drawSortState = (
     context.stroke();
   }
 
-  step.array.forEach((item, index) => {
+  values.forEach((item, index) => {
     const barHeight = (item.value / maxValue) * chartHeight;
     const x = padding + index * (barWidth + gap);
     const y = height - padding - barHeight;
@@ -77,13 +113,13 @@ export const drawSortState = (
 
     const isPlaybackBar = playbackOriginalIndex === item.originalIndex;
 
-    context.fillStyle = colorForBar(index, step, playbackOriginalIndex);
+    context.fillStyle = colorForBar(item, index, step, playbackOriginalIndex);
     context.beginPath();
-    context.roundRect(x, y, barWidth, barHeight, radius);
+    drawRoundRect(context, x, y, barWidth, barHeight, radius);
     context.fill();
 
     if (isPlaybackBar) {
-      context.strokeStyle = '#581c87';
+      context.strokeStyle = '#4c1d95';
       context.lineWidth = Math.max(2, Math.min(5, barWidth * 0.18));
       context.stroke();
     }

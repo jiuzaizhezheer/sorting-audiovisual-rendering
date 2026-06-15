@@ -1,47 +1,39 @@
-import { algorithmMap } from '../algorithms/registry';
 import type { SortAlgorithmId, SortItem, SortStep } from '../types/sorting';
 import { createRandomArray } from '../utils/randomArray';
 
 export type SortState = {
   algorithmId: SortAlgorithmId;
   values: SortItem[];
-  steps: SortStep[];
-  stepIndex: number;
+  currentStep: SortStep;
   isPlaying: boolean;
-  isSoundEnabled: boolean;
-  speedMs: number;
+  isDone: boolean;
   size: number;
 };
 
 export type SortAction =
   | { type: 'selectAlgorithm'; algorithmId: SortAlgorithmId }
-  | { type: 'generateValues' }
-  | { type: 'setSize'; size: number }
-  | { type: 'setSpeed'; speedMs: number }
-  | { type: 'toggleSound' }
-  | { type: 'play' }
-  | { type: 'pause' }
   | { type: 'togglePlayback' }
-  | { type: 'nextStep' }
-  | { type: 'previousStep' }
-  | { type: 'resetSteps' };
+  | { type: 'applyStep'; values: SortItem[]; step: SortStep; isDone: boolean }
+  | { type: 'resetValues'; values: SortItem[]; size?: number };
 
-const buildSteps = (algorithmId: SortAlgorithmId, values: SortItem[]): SortStep[] =>
-  algorithmMap[algorithmId].createSteps(values);
+export const createIdleStep = (): SortStep => ({
+  phase: 'idle',
+  note: '初始数组已生成，准备开始排序。',
+});
+
+export const DEFAULT_ALGORITHM_ID: SortAlgorithmId = 'bubble';
 
 export const createInitialSortState = (): SortState => {
-  const algorithmId: SortAlgorithmId = 'bubble';
-  const size = 100;
+  const algorithmId = DEFAULT_ALGORITHM_ID;
+  const size = 400;
   const values = createRandomArray(size);
 
   return {
     algorithmId,
     values,
-    steps: buildSteps(algorithmId, values),
-    stepIndex: 0,
+    currentStep: createIdleStep(),
     isPlaying: false,
-    isSoundEnabled: true,
-    speedMs: 5,
+    isDone: false,
     size,
   };
 };
@@ -49,80 +41,35 @@ export const createInitialSortState = (): SortState => {
 export const sortReducer = (state: SortState, action: SortAction): SortState => {
   switch (action.type) {
     case 'selectAlgorithm': {
-      const steps = buildSteps(action.algorithmId, state.values);
       return {
         ...state,
         algorithmId: action.algorithmId,
-        steps,
-        stepIndex: 0,
+        currentStep: createIdleStep(),
         isPlaying: false,
+        isDone: false,
       };
     }
-    case 'generateValues': {
-      const values = createRandomArray(state.size);
-      return {
-        ...state,
-        values,
-        steps: buildSteps(state.algorithmId, values),
-        stepIndex: 0,
-        isPlaying: false,
-      };
-    }
-    case 'setSize': {
-      const values = createRandomArray(action.size);
-      return {
-        ...state,
-        size: action.size,
-        values,
-        steps: buildSteps(state.algorithmId, values),
-        stepIndex: 0,
-        isPlaying: false,
-      };
-    }
-    case 'setSpeed':
-      return {
-        ...state,
-        speedMs: action.speedMs,
-      };
-    case 'toggleSound':
-      return {
-        ...state,
-        isSoundEnabled: !state.isSoundEnabled,
-      };
-    case 'play':
-      return {
-        ...state,
-        isPlaying: state.stepIndex < state.steps.length - 1,
-      };
-    case 'pause':
-      return {
-        ...state,
-        isPlaying: false,
-      };
     case 'togglePlayback':
       return {
         ...state,
-        isPlaying: state.stepIndex < state.steps.length - 1 ? !state.isPlaying : false,
+        isPlaying: state.isDone ? false : !state.isPlaying,
       };
-    case 'nextStep': {
-      const stepIndex = Math.min(state.stepIndex + 1, state.steps.length - 1);
+    case 'applyStep':
       return {
         ...state,
-        stepIndex,
-        isPlaying: stepIndex < state.steps.length - 1 ? state.isPlaying : false,
+        values: action.values,
+        currentStep: action.step,
+        isPlaying: action.isDone ? false : state.isPlaying,
+        isDone: action.isDone,
       };
-    }
-    case 'previousStep':
+    case 'resetValues':
       return {
         ...state,
-        stepIndex: Math.max(state.stepIndex - 1, 0),
+        values: action.values,
+        size: action.size ?? state.size,
+        currentStep: createIdleStep(),
         isPlaying: false,
-      };
-    case 'resetSteps':
-      return {
-        ...state,
-        stepIndex: 0,
-        isPlaying: false,
+        isDone: false,
       };
     default:
       return state;
