@@ -49,16 +49,27 @@ export const quickSort: SortAlgorithm = {
         }
       }
 
-      [values[storeIndex], values[right]] = [values[right], values[storeIndex]];
-      sorted.add(storeIndex);
-      yield {
-        activeIndices: [storeIndex, right],
-        audioIndices: [storeIndex, right],
-        sortedIndices: [...sorted],
-        pivotIndex: storeIndex,
-        phase: 'swapping',
-        note: `基准归位到第 ${storeIndex + 1} 个位置，本轮分区结束。`,
-      };
+      if (storeIndex === right) {
+        sorted.add(right);
+        yield {
+          activeIndices: [right],
+          sortedIndices: [...sorted],
+          pivotIndex: right,
+          phase: 'done',
+          note: '所有元素均小于基准，基准已在正确位置。',
+        };
+      } else {
+        [values[storeIndex], values[right]] = [values[right], values[storeIndex]];
+        sorted.add(storeIndex);
+        yield {
+          activeIndices: [storeIndex, right],
+          audioIndices: [storeIndex, right],
+          sortedIndices: [...sorted],
+          pivotIndex: storeIndex,
+          phase: 'swapping',
+          note: `基准归位到第 ${storeIndex + 1} 个位置，本轮分区结束。`,
+        };
+      }
 
       return storeIndex;
     }
@@ -70,6 +81,12 @@ export const quickSort: SortAlgorithm = {
 
       if (left === right) {
         sorted.add(left);
+        yield {
+          activeIndices: [left],
+          sortedIndices: [...sorted],
+          phase: 'done',
+          note: `第 ${left + 1} 个元素已完成。`,
+        };
         return;
       }
 

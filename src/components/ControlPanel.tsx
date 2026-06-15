@@ -53,6 +53,7 @@ const TickRange = <TValue extends number>({ label, suffix = '', value, options, 
 type ControlPanelProps = {
   isPlaying: boolean;
   canPlay: boolean;
+  isFullPlayback: boolean;
   size: number;
   sizeOptions: readonly number[];
   audioFileName: string | null;
@@ -68,6 +69,7 @@ type ControlPanelProps = {
 export const ControlPanel = ({
   isPlaying,
   canPlay,
+  isFullPlayback,
   size,
   sizeOptions,
   audioFileName,
@@ -89,8 +91,8 @@ export const ControlPanel = ({
           disabled={!canPlay}
           className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
         >
-          {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-          {isPlaying ? '暂停' : '播放'}
+          {isFullPlayback ? <Play size={18} /> : isPlaying ? <Pause size={18} /> : <Play size={18} />}
+          {isFullPlayback ? '正在播放' : isPlaying ? '暂停' : '播放'}
         </button>
         <button
           type="button"

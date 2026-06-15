@@ -31,6 +31,7 @@ export const App = () => {
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [audioFileStatus, setAudioFileStatus] = useState<'idle' | 'ready' | 'error'>('idle');
   const [playbackOriginalIndex, setPlaybackOriginalIndex] = useState<number | null>(null);
+  const [isFullPlayback, setIsFullPlayback] = useState(false);
   const audioEngineRef = useRef<SortAudioEngine | null>(null);
   const runnerRef = useRef<Generator<SortStep, SortStep, void> | null>(null);
   const runnerValuesRef = useRef<SortItem[]>([]);
@@ -66,6 +67,7 @@ export const App = () => {
     const sortedValues = finalOrderRef.current;
 
     const playFullPass = async () => {
+      setIsFullPlayback(true);
       audioEngineRef.current ??= new SortAudioEngine();
       await audioEngineRef.current.playItems(sortedValues, sortedValues, {
         onSegmentStart: setPlaybackOriginalIndex,
@@ -73,6 +75,7 @@ export const App = () => {
       });
       if (!cancelled) {
         setPlaybackOriginalIndex(null);
+        setIsFullPlayback(false);
       }
     };
 
@@ -82,6 +85,7 @@ export const App = () => {
       cancelled = true;
       audioEngineRef.current?.stop();
       setPlaybackOriginalIndex(null);
+      setIsFullPlayback(false);
     };
   }, [state.isDone, hasUploadedAudio]);
 
@@ -197,6 +201,7 @@ export const App = () => {
               <ControlPanel
                 isPlaying={state.isPlaying}
                 canPlay={canPlay}
+                isFullPlayback={isFullPlayback}
                 size={state.size}
                 sizeOptions={sizeOptions}
                 audioFileName={audioFileName}
