@@ -14,7 +14,9 @@ export const countingSort: SortAlgorithm = {
 
     for (let index = 0; index < values.length; index += 1) {
       const item = values[index];
-      buckets.set(item.value, [...(buckets.get(item.value) ?? []), item]);
+      const bucket = buckets.get(item.value) ?? [];
+      bucket.push(item);
+      buckets.set(item.value, bucket);
       yield {
         activeIndices: [index],
         audioIndices: [index],
