@@ -1,4 +1,14 @@
-export type SortAlgorithmId = 'bubble' | 'quick' | 'merge';
+export type SortAlgorithmId =
+  | 'bubble'
+  | 'quick'
+  | 'merge'
+  | 'selection'
+  | 'insertion'
+  | 'shell'
+  | 'heap'
+  | 'counting'
+  | 'bucket'
+  | 'radix';
 
 export type SortPhase = 'idle' | 'comparing' | 'swapping' | 'overwriting' | 'partitioning' | 'done';
 
