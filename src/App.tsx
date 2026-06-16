@@ -124,63 +124,69 @@ export const App = () => {
 
     let cancelled = false;
 
-    const scheduleNextStep = async () => {
+    const runPlayback = async () => {
       if (!runnerRef.current) {
         resetRunner(state.algorithmId, state.values);
       }
 
-      let result = runnerRef.current!.next();
+      while (!cancelled) {
+        const result = runnerRef.current!.next();
 
-      if (hasUploadedAudio) {
-        const nextStep = result.value;
+        if (hasUploadedAudio) {
+          const nextStep = result.value;
 
-        if (!cancelled) {
           dispatch({
             type: 'applyStep',
             values: [...runnerValuesRef.current],
             step: nextStep,
             isDone: Boolean(result.done),
           });
-        }
 
-        if (result.done) {
-          return;
-        }
+          if (result.done) {
+            return;
+          }
 
-        const audioItems = getStepAudioItems(runnerValuesRef.current, nextStep.audioIndices);
+          const audioItems = getStepAudioItems(runnerValuesRef.current, nextStep.audioIndices);
 
-        if (audioItems.length > 0) {
-          audioEngineRef.current ??= new SortAudioEngine();
-          await audioEngineRef.current.playItems(
-            audioItems,
-            finalOrderRef.current,
-            {
-              onSegmentStart: setPlaybackOriginalIndex,
-              onPlaybackEnd: () => setPlaybackOriginalIndex(null),
-            },
-          );
+          if (audioItems.length > 0) {
+            audioEngineRef.current ??= new SortAudioEngine();
+            await audioEngineRef.current.playItems(
+              audioItems,
+              finalOrderRef.current,
+              {
+                onSegmentStart: setPlaybackOriginalIndex,
+                onPlaybackEnd: () => setPlaybackOriginalIndex(null),
+              },
+            );
+          } else {
+            await new Promise<void>((resolve) => {
+              window.setTimeout(resolve, 200);
+            });
+          }
         } else {
           await new Promise<void>((resolve) => {
-            window.setTimeout(resolve, 200);
+            window.setTimeout(resolve, NO_AUDIO_STEP_INTERVAL_MS);
           });
-        }
-      } else {
-        await new Promise<void>((resolve) => {
-          window.setTimeout(resolve, NO_AUDIO_STEP_INTERVAL_MS);
-        });
 
-        if (!cancelled) {
+          if (cancelled) {
+            return;
+          }
+
           dispatch({
             type: 'applyStep',
             values: [...runnerValuesRef.current],
             step: result.value,
             isDone: Boolean(result.done),
           });
+
+          if (result.done) {
+            return;
+          }
         }
       }
     };
 
-    void scheduleNextStep();
+    void runPlayback();
 
     return () => {
       cancelled = true;
@@ -189,7 +195,7 @@ export const App = () => {
       }
       setPlaybackOriginalIndex(null);
     };
-  }, [currentStep, hasUploadedAudio, state.algorithmId, state.isPlaying, state.values]);
+  }, [hasUploadedAudio, state.algorithmId, state.isPlaying]);
 
   const resetToValues = (algorithmId: SortAlgorithmId, values: SortItem[], size?: number) => {
     resetRunner(algorithmId, values);
