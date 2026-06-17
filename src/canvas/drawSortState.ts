@@ -9,9 +9,6 @@ const colorForBar = (
   if (playbackOriginalIndex === item.originalIndex) {
     return '#9333ea';
   }
-  if (step.sortedIndices?.includes(index)) {
-    return '#15803d';
-  }
   if (step.pivotIndex === index) {
     return '#f97316';
   }
@@ -26,6 +23,9 @@ const colorForBar = (
       return '#1d4ed8';
     }
     return '#0891b2';
+  }
+  if (step.sortedIndices?.includes(index)) {
+    return '#15803d';
   }
   return '#64748b';
 };
