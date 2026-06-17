@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { drawSortState } from '../canvas/drawSortState';
 import type { SortItem, SortStep } from '../types/sorting';
 
@@ -6,37 +6,60 @@ type CanvasViewportProps = {
   values: SortItem[];
   step: SortStep;
   playbackOriginalIndex: number | null;
+  scaleMaxValue: number;
 };
 
-export const CanvasViewport = ({ values, step, playbackOriginalIndex }: CanvasViewportProps) => {
+export const CanvasViewport = ({ values, step, playbackOriginalIndex, scaleMaxValue }: CanvasViewportProps) => {
+  const canvasAreaRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderRef = useRef<() => void>(() => {});
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   renderRef.current = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    drawSortState(canvas, values, step, playbackOriginalIndex);
+    if (!canvas || canvasSize.width === 0 || canvasSize.height === 0) return;
+    drawSortState(canvas, values, step, playbackOriginalIndex, scaleMaxValue, canvasSize.width, canvasSize.height);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     renderRef.current();
   });
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const canvasArea = canvasAreaRef.current;
+    if (!canvasArea) return;
 
-    const onResize = () => renderRef.current();
-    const resizeObserver = new ResizeObserver(onResize);
-    resizeObserver.observe(canvas);
+    const updateCanvasSize = () => {
+      const { width, height } = canvasArea.getBoundingClientRect();
+      const nextWidth = Math.max(1, Math.floor(width));
+      const nextHeight = Math.max(1, Math.floor(height));
+
+      setCanvasSize((currentSize) => {
+        if (currentSize.width === nextWidth && currentSize.height === nextHeight) {
+          return currentSize;
+        }
+
+        return { width: nextWidth, height: nextHeight };
+      });
+    };
+
+    updateCanvasSize();
+
+    const resizeObserver = new ResizeObserver(updateCanvasSize);
+    resizeObserver.observe(canvasArea);
 
     return () => resizeObserver.disconnect();
   }, []);
 
   return (
     <div className="flex h-[460px] min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm lg:h-full">
-      <div className="min-h-0 flex-1 bg-slate-50">
-        <canvas ref={canvasRef} className="h-full w-full" aria-label="排序过程可视化画布" />
+      <div ref={canvasAreaRef} className="min-h-0 flex-1 bg-slate-50">
+        <canvas
+          ref={canvasRef}
+          className="block"
+          style={{ height: canvasSize.height, width: canvasSize.width }}
+          aria-label="排序过程可视化画布"
+        />
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-slate-200 px-4 py-3 text-sm">
         <span className="inline-flex items-center gap-2 text-slate-600">

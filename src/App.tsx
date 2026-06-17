@@ -9,7 +9,7 @@ import { createInitialSortState, sortReducer } from './state/sortReducer';
 import type { SortAlgorithmId, SortItem, SortStep } from './types/sorting';
 import { createRandomArray } from './utils/randomArray';
 
-const NO_AUDIO_SIZE_OPTIONS = [400, 600, 800, 1000] as const;
+const NO_AUDIO_SIZE_OPTIONS = [200, 400, 600, 800] as const;
 const AUDIO_SIZE_OPTIONS = [25, 50, 75, 100] as const;
 const NO_AUDIO_STEP_INTERVAL_MS = 1;
 
@@ -24,6 +24,7 @@ const getStepAudioItems = (array: SortItem[], audioIndices: number[] | undefined
 };
 
 const createFinalOrder = (values: SortItem[]): SortItem[] => [...values].sort((a, b) => a.value - b.value);
+const getMaxValue = (values: SortItem[]): number => Math.max(...values.map((item) => item.value), 1);
 
 export const App = () => {
   const [state, dispatch] = useReducer(sortReducer, undefined, createInitialSortState);
@@ -37,6 +38,7 @@ export const App = () => {
   const runnerValuesRef = useRef<SortItem[]>([]);
   const initialValuesRef = useRef<SortItem[]>(state.values);
   const finalOrderRef = useRef<SortItem[]>(createFinalOrder(state.values));
+  const scaleMaxValueRef = useRef(getMaxValue(state.values));
   const currentStep = state.currentStep;
   const currentAlgorithm = algorithmMap[state.algorithmId];
   const hasUploadedAudio = audioFileStatus === 'ready';
@@ -47,6 +49,7 @@ export const App = () => {
     initialValuesRef.current = values;
     runnerValuesRef.current = [...values];
     finalOrderRef.current = createFinalOrder(values);
+    scaleMaxValueRef.current = getMaxValue(values);
     runnerRef.current = algorithmMap[algorithmId].createRunner(runnerValuesRef.current);
     audioEngineRef.current?.stop();
     setPlaybackOriginalIndex(null);
@@ -215,7 +218,12 @@ export const App = () => {
 
         <section className="grid flex-1 gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_clamp(340px,28vw,520px)]">
           <div className="min-h-0 min-w-0">
-            <CanvasViewport values={state.values} step={currentStep} playbackOriginalIndex={playbackOriginalIndex} />
+            <CanvasViewport
+              values={state.values}
+              step={currentStep}
+              playbackOriginalIndex={playbackOriginalIndex}
+              scaleMaxValue={scaleMaxValueRef.current}
+            />
           </div>
 
           <aside className="flex min-w-0 flex-col overflow-y-auto overflow-x-hidden rounded-md border border-slate-200 bg-white p-[clamp(12px,1.2dvw,22px)] shadow-sm lg:h-full lg:min-h-0">

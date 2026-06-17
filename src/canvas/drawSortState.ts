@@ -62,6 +62,9 @@ export const drawSortState = (
   values: SortItem[],
   step: SortStep,
   playbackOriginalIndex: number | null,
+  scaleMaxValue: number,
+  viewportWidth: number,
+  viewportHeight: number,
 ): void => {
   const context = canvas.getContext('2d');
   if (!context) {
@@ -69,9 +72,8 @@ export const drawSortState = (
   }
 
   const pixelRatio = window.devicePixelRatio || 1;
-  const { clientWidth, clientHeight } = canvas;
-  const width = Math.max(clientWidth, 1);
-  const height = Math.max(clientHeight, 1);
+  const width = Math.max(viewportWidth, 1);
+  const height = Math.max(viewportHeight, 1);
 
   if (canvas.width !== Math.floor(width * pixelRatio)) {
     canvas.width = Math.floor(width * pixelRatio);
@@ -90,7 +92,7 @@ export const drawSortState = (
   const rawBarWidth = chartWidth / itemCount;
   const gap = rawBarWidth >= 4 ? Math.min(6, rawBarWidth * 0.18) : 0;
   const barWidth = Math.max((chartWidth - gap * (itemCount - 1)) / itemCount, 1);
-  const maxValue = Math.max(...values.map((item) => item.value));
+  const maxValue = Math.max(scaleMaxValue, 1);
 
   context.fillStyle = '#f8fafc';
   context.fillRect(0, 0, width, height);
