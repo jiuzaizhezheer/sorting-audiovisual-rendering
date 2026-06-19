@@ -74,7 +74,7 @@ src/
   audio/             排序音序生成与播放逻辑
   canvas/            Canvas 绘制逻辑
   components/        React UI 组件
-  hooks/             排序播放、音频状态和用户动作编排
+  hooks/             排序总控、播放调度、音频状态和快捷键
   state/             useReducer 状态管理
   types/             共享类型
   utils/             通用工具
@@ -95,9 +95,12 @@ src/
 
 - 算法文件只负责用生成器推进当前排序步骤
 - `sortReducer.ts` 负责播放状态、数组大小、当前数组和当前步骤
-- `useSortingVisualizer.ts` 负责排序生成器、播放循环、音频文件状态和控制动作
-- 未上传音频时按 1ms 固定间隔逐步推进画面，不进入音频播放流程
+- `useSortingVisualizer.ts` 负责组合排序状态和用户控制动作
+- `useSortingPlayback.ts` 负责排序生成器和播放循环
+- `useSortAudio.ts` 负责音频文件加载、分段播放和 Web Audio 生命周期
+- 未上传音频时按时间片批量推进排序步骤，每批之间间隔 1ms，以控制 React 渲染次数
 - 上传音频后，会按数值排序得到的目标顺序平均切分音频；排序中途只播放当前被操作元素对应的片段
+- `useSpacebarToggle.ts` 负责空格键播放和暂停
 - `drawSortState.ts` 负责把当前数组和当前步骤绘制到 Canvas
 - `App.tsx` 和组件层只负责页面组合、用户交互绑定和算法信息展示
 

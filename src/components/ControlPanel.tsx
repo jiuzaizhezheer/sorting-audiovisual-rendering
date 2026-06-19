@@ -123,7 +123,7 @@ export const ControlPanel = ({
             上传音频
           </span>
           <span className="truncate text-xs opacity-75">
-            {isAudioLoading ? '正在解码音频...' : audioFileName ?? '未上传音频时按1ms间隔进行'}
+            {isAudioLoading ? '正在解码音频...' : audioFileName ?? '未上传音频时分批推进，每批间隔1ms'}
           </span>
         </span>
         <span
