@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { drawSortState } from '../canvas/drawSortState';
+import type { Theme } from '../hooks/useTheme';
 import type { SortItem, SortStep } from '../types/sorting';
 
 type CanvasViewportProps = {
@@ -7,9 +8,10 @@ type CanvasViewportProps = {
   step: SortStep;
   playbackOriginalIndex: number | null;
   scaleMaxValue: number;
+  theme: Theme;
 };
 
-export const CanvasViewport = ({ values, step, playbackOriginalIndex, scaleMaxValue }: CanvasViewportProps) => {
+export const CanvasViewport = ({ values, step, playbackOriginalIndex, scaleMaxValue, theme }: CanvasViewportProps) => {
   const canvasAreaRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderRef = useRef<() => void>(() => {});
@@ -18,7 +20,7 @@ export const CanvasViewport = ({ values, step, playbackOriginalIndex, scaleMaxVa
   renderRef.current = () => {
     const canvas = canvasRef.current;
     if (!canvas || canvasSize.width === 0 || canvasSize.height === 0) return;
-    drawSortState(canvas, values, step, playbackOriginalIndex, scaleMaxValue, canvasSize.width, canvasSize.height);
+    drawSortState(canvas, values, step, playbackOriginalIndex, scaleMaxValue, canvasSize.width, canvasSize.height, theme);
   };
 
   useLayoutEffect(() => {
@@ -52,8 +54,8 @@ export const CanvasViewport = ({ values, step, playbackOriginalIndex, scaleMaxVa
   }, []);
 
   return (
-    <div className="flex h-[460px] min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm lg:h-full">
-      <div ref={canvasAreaRef} className="min-h-0 flex-1 bg-slate-50">
+    <div className="flex h-[460px] min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900 lg:h-full">
+      <div ref={canvasAreaRef} className="min-h-0 flex-1 bg-slate-50 dark:bg-slate-950">
         <canvas
           ref={canvasRef}
           className="block"
@@ -61,32 +63,32 @@ export const CanvasViewport = ({ values, step, playbackOriginalIndex, scaleMaxVa
           aria-label="排序过程可视化画布"
         />
       </div>
-      <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-slate-200 px-4 py-3 text-sm">
-        <span className="inline-flex items-center gap-2 text-slate-600">
+      <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-slate-200 px-4 py-3 text-sm dark:border-slate-800">
+        <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <span className="h-3 w-3 rounded-sm bg-slate-600" />
           当前数组
         </span>
-        <span className="inline-flex items-center gap-2 text-slate-600">
+        <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <span className="h-3 w-3 rounded-sm bg-cyan-600" />
           比较
         </span>
-        <span className="inline-flex items-center gap-2 text-slate-600">
+        <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <span className="h-3 w-3 rounded-sm bg-rose-600" />
           交换
         </span>
-        <span className="inline-flex items-center gap-2 text-slate-600">
+        <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <span className="h-3 w-3 rounded-sm bg-blue-700" />
           写回
         </span>
-        <span className="inline-flex items-center gap-2 text-slate-600">
+        <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <span className="h-3 w-3 rounded-sm bg-orange-500" />
           基准
         </span>
-        <span className="inline-flex items-center gap-2 text-slate-600">
+        <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <span className="h-3 w-3 rounded-sm bg-green-700" />
           已完成
         </span>
-        <span className="inline-flex items-center gap-2 text-slate-600">
+        <span className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <span className="h-3 w-3 rounded-sm bg-purple-600" />
           正在播放
         </span>

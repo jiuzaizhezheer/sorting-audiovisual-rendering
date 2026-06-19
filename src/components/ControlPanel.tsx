@@ -13,10 +13,10 @@ const TickRange = <TValue extends number>({ label, suffix = '', value, options, 
   const selectedIndex = foundIndex >= 0 ? foundIndex : 0;
 
   return (
-    <label className="grid gap-1 text-sm text-slate-600">
+    <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-400">
       <span className="flex items-center justify-between">
         <span>{label}</span>
-        <span className="font-mono text-slate-900">
+        <span className="font-mono text-slate-900 dark:text-slate-100">
           {value}
           {suffix}
         </span>
@@ -29,9 +29,9 @@ const TickRange = <TValue extends number>({ label, suffix = '', value, options, 
           step="1"
           value={selectedIndex}
           onChange={(event) => onChange(options[Number(event.target.value)])}
-          className="w-full accent-slate-950"
+          className="w-full accent-slate-950 dark:accent-slate-100"
         />
-        <div className="relative h-4 font-mono text-xs text-slate-500">
+        <div className="relative h-4 font-mono text-xs text-slate-500 dark:text-slate-500">
           {options.map((option, index) => {
             const left = options.length > 1 ? (index / (options.length - 1)) * 100 : 50;
             return (
@@ -83,13 +83,13 @@ export const ControlPanel = ({
 }: ControlPanelProps) => (
   <section className="grid grid-rows-[auto_auto_auto] gap-2">
     <div className="grid min-h-0 gap-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">播放控制</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">播放控制</p>
       <div className="grid grid-cols-[minmax(0,1fr)_clamp(42px,3.2vw,56px)] gap-2">
         <button
           type="button"
           onClick={onTogglePlayback}
           disabled={!canPlay}
-          className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-950 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
         >
           {isFullPlayback ? <Play size={18} /> : isPlaying ? <Pause size={18} /> : <Play size={18} />}
           {isFullPlayback ? '正在播放' : isPlaying ? '暂停' : '播放'}
@@ -98,23 +98,23 @@ export const ControlPanel = ({
           type="button"
           onClick={onReset}
           title="重置步骤"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-slate-200 text-slate-700"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-slate-200 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           <RotateCcw size={18} />
         </button>
       </div>
     </div>
 
-    <div className="grid min-h-0 gap-2 border-t border-slate-200 pt-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">音频</p>
+    <div className="grid min-h-0 gap-2 border-t border-slate-200 pt-2 dark:border-slate-800">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">音频</p>
 
       <label
         className={`grid min-h-14 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md border p-2 text-sm transition ${
           audioFileStatus === 'ready'
-            ? 'border-emerald-700 bg-emerald-50 text-emerald-900 shadow-[inset_0_0_0_1px_rgba(4,120,87,0.12)]'
+            ? 'border-emerald-700 bg-emerald-50 text-emerald-900 shadow-[inset_0_0_0_1px_rgba(4,120,87,0.12)] dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200'
             : audioFileStatus === 'error'
-              ? 'border-rose-300 bg-rose-50 text-rose-900'
-              : 'border-dashed border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-500'
+              ? 'border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-200'
+              : 'border-dashed border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-slate-500'
         }`}
       >
         <span className="grid min-w-0 gap-0.5">
@@ -153,12 +153,12 @@ export const ControlPanel = ({
       </label>
     </div>
 
-    <div className="grid min-h-0 content-start gap-2 border-t border-slate-200 pt-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">数据设置</p>
+    <div className="grid min-h-0 content-start gap-2 border-t border-slate-200 pt-2 dark:border-slate-800">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">数据设置</p>
       <button
         type="button"
         onClick={onGenerate}
-        className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-800 hover:border-slate-500"
+        className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-800 transition-colors hover:border-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-slate-800"
       >
         <Shuffle size={17} />
         生成新数组

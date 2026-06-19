@@ -49,7 +49,7 @@ export const AlgorithmTabs = ({ currentId, onSelect }: AlgorithmTabsProps) => {
   return (
     <nav
       aria-label="排序算法"
-      className="sticky top-2 z-10 w-full overflow-hidden rounded-md border border-slate-200 bg-white p-1 shadow-sm"
+      className="w-full overflow-hidden rounded-md border border-slate-200 bg-white p-1 shadow-sm transition-colors dark:border-slate-700 dark:bg-slate-900"
     >
       <div ref={viewportRef} className="overflow-hidden">
         <div
@@ -78,8 +78,8 @@ export const AlgorithmTabs = ({ currentId, onSelect }: AlgorithmTabsProps) => {
                   onClick={() => onSelect(algorithm.id)}
                   className={`h-9 w-full min-w-0 rounded px-2 text-center transition-colors duration-200 ${
                     selected
-                      ? 'bg-slate-950 text-white shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                      ? 'bg-slate-950 text-white shadow-sm dark:bg-slate-100 dark:text-slate-950'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                   }`}
                 >
                   <span className="block truncate text-sm font-semibold">{algorithm.name}</span>

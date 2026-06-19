@@ -1,4 +1,5 @@
 import type { SortItem, SortStep } from '../types/sorting';
+import type { Theme } from '../hooks/useTheme';
 
 const colorForBar = (
   item: SortItem,
@@ -65,6 +66,7 @@ export const drawSortState = (
   scaleMaxValue: number,
   viewportWidth: number,
   viewportHeight: number,
+  theme: Theme,
 ): void => {
   const context = canvas.getContext('2d');
   if (!context) {
@@ -94,10 +96,11 @@ export const drawSortState = (
   const barWidth = Math.max((chartWidth - gap * (itemCount - 1)) / itemCount, 1);
   const maxValue = Math.max(scaleMaxValue, 1);
 
-  context.fillStyle = '#f8fafc';
+  const isDark = theme === 'dark';
+  context.fillStyle = isDark ? '#020617' : '#f8fafc';
   context.fillRect(0, 0, width, height);
 
-  context.strokeStyle = '#e2e8f0';
+  context.strokeStyle = isDark ? '#1e293b' : '#e2e8f0';
   context.lineWidth = 1;
   for (let line = 0; line <= 4; line += 1) {
     const y = padding + (chartHeight / 4) * line;

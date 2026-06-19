@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   font-family:
@@ -20,9 +21,14 @@ html {
   background: #f1f5f9;
 }
 
+html.dark {
+  background: #020617;
+}
+
 body {
   margin: 0;
   min-width: 320px;
+  background: inherit;
 }
 
 button,
